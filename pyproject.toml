@@ -1,0 +1,31 @@
+[project]
+name = "revisit-bookmarks"
+version = "0.1.1"
+description = "Simple bookmark manager with custom webview"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "click>=8.3.1",
+    "flask>=3.1.2",
+    "requests>=2.32.5",
+]
+
+[project.scripts]
+revisit = "revisit.cli:revisit"
+
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+include = ["revisit*"]
+
+[tool.setuptools.package-data]
+revisit = ["db/sqlite/migrations/*.sql"]
+
+[dependency-groups]
+dev = [
+    "pytest>=9.0.2",
+    "rust-just>=1.46.0",
+    "twine>=6.2.0",
+]
