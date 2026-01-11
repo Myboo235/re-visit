@@ -24,3 +24,11 @@ db-reset:
 # Serve the web UI
 serve:
 	@uv run python -m revisit.cli server
+
+# Lint the code using ruff
+lint *args:
+	@uv run ruff check . {{args}}
+
+# Format the code using ruff
+format *args:
+	@uv run ruff format . {{args}}

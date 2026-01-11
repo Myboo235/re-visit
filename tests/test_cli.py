@@ -1,6 +1,7 @@
-import pytest
 from click.testing import CliRunner
+
 from revisit.cli import revisit
+
 
 def test_version_command():
     runner = CliRunner()

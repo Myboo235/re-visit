@@ -1,14 +1,16 @@
 import click
+
 from revisit.commands.add_command import add
-from revisit.commands.version_command import version
-from revisit.commands.print_command import print_cmd
-from revisit.commands.delete_command import delete
-from revisit.commands.update_command import update
-from revisit.commands.open_command import open_cmd
 from revisit.commands.check_command import check
+from revisit.commands.delete_command import delete
 from revisit.commands.export_command import export
 from revisit.commands.import_command import import_cmd
+from revisit.commands.open_command import open_cmd
+from revisit.commands.print_command import print_cmd
 from revisit.commands.server_command import server
+from revisit.commands.update_command import update
+from revisit.commands.version_command import version
+
 
 @click.group()
 def revisit():

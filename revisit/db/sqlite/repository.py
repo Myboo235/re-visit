@@ -1,6 +1,8 @@
-from typing import List, Optional
-from revisit.domain.bookmark import Bookmark
+from typing import List
+
 from revisit.db.sqlite.manager import DatabaseManager
+from revisit.domain.bookmark import Bookmark
+
 
 class BookmarkRepository:
     def __init__(self, db_manager: DatabaseManager):

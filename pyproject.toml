@@ -28,4 +28,16 @@ dev = [
     "pytest>=9.0.2",
     "rust-just>=1.46.0",
     "twine>=6.2.0",
+    "ruff>=0.9.1",
 ]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "N", "B", "PL", "RUF"]
+ignore = []
+
+[tool.ruff.lint.isort]
+combine-as-imports = true

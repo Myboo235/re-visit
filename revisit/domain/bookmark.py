@@ -2,6 +2,7 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from typing import List, Optional
 
+
 @dataclass
 class Bookmark:
     url: str
@@ -16,12 +17,15 @@ class Bookmark:
         if isinstance(tags, str):
             tags = [t.strip() for t in tags.split(",") if t.strip()]
         
+        created_at = (
+            datetime.fromisoformat(data["created_at"]) if data.get("created_at") else datetime.now()
+        )
         return cls(
             url=data["url"],
             name=data["name"],
             tags=tags,
             id=data.get("id"),
-            created_at=datetime.fromisoformat(data["created_at"]) if data.get("created_at") else datetime.now()
+            created_at=created_at,
         )
 
     def to_dict(self):

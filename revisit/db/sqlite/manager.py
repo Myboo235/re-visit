@@ -1,6 +1,7 @@
-import sqlite3
 import os
+import sqlite3
 from pathlib import Path
+
 
 class DatabaseManager:
     def __init__(self, db_path: str = "bookmarks.db"):

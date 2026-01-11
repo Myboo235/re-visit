@@ -1,130 +1,77 @@
+import os
+
 import click
-from flask import Flask, render_template_string
-from revisit.db.sqlite.manager import DatabaseManager
-from revisit.db.sqlite.repository import BookmarkRepository
+from flask import Flask, jsonify, request, send_from_directory
+
+from revisit.handlers.bookmark_handler import BookmarkHandler
+
 
 def create_app():
-    app = Flask(__name__)
-    db_manager = DatabaseManager()
-    repo = BookmarkRepository(db_manager)
+    # Path to the built web files
+    base_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
+    dist_dir = os.path.join(base_dir, 'web', 'dist')
 
-    HTML_TEMPLATE = """
-    <!DOCTYPE html>
-    <html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Revisit Bookmark Manager</title>
-        <style>
-            :root {
-                --primary: #2563eb;
-                --bg: #f8fafc;
-                --text: #1e293b;
-                --card-bg: #ffffff;
-            }
-            body { 
-                font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-                margin: 0;
-                background: var(--bg);
-                color: var(--text);
-                line-height: 1.5;
-            }
-            .container {
-                max-width: 900px;
-                margin: 40px auto;
-                padding: 0 20px;
-            }
-            header {
-                margin-bottom: 40px;
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-            }
-            h1 { margin: 0; font-size: 2rem; color: var(--primary); }
-            .bookmark-list {
-                display: grid;
-                gap: 16px;
-            }
-            .bookmark-card {
-                background: var(--card-bg);
-                padding: 20px;
-                border-radius: 12px;
-                box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-                transition: transform 0.2s, box-shadow 0.2s;
-            }
-            .bookmark-card:hover {
-                transform: translateY(-2px);
-                box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06);
-            }
-            .bookmark-name {
-                display: block;
-                font-size: 1.25rem;
-                font-weight: 600;
-                color: var(--primary);
-                text-decoration: none;
-                margin-bottom: 4px;
-            }
-            .bookmark-url {
-                font-size: 0.875rem;
-                color: #64748b;
-                word-break: break-all;
-            }
-            .tags {
-                margin-top: 12px;
-                display: flex;
-                flex-wrap: wrap;
-                gap: 8px;
-            }
-            .tag {
-                background: #f1f5f9;
-                color: #475569;
-                padding: 4px 10px;
-                border-radius: 9999px;
-                font-size: 0.75rem;
-                font-weight: 500;
-            }
-            .empty-state {
-                text-align: center;
-                padding: 60px;
-                color: #64748b;
-            }
-        </style>
-    </head>
-    <body>
-        <div class="container">
-            <header>
-                <h1>Revisit</h1>
-                <span>{{ bookmarks|length }} Bookmarks</span>
-            </header>
-            
-            <div class="bookmark-list">
-                {% for b in bookmarks %}
-                <div class="bookmark-card">
-                    <a href="{{ b.url }}" class="bookmark-name" target="_blank">{{ b.name }}</a>
-                    <div class="bookmark-url">{{ b.url }}</div>
-                    {% if b.tags %}
-                    <div class="tags">
-                        {% for tag in b.tags %}
-                        <span class="tag">{{ tag }}</span>
-                        {% endfor %}
-                    </div>
-                    {% endif %}
-                </div>
-                {% else %}
-                <div class="empty-state">
-                    <p>No bookmarks found. Use <code>revisit add</code> to get started!</p>
-                </div>
-                {% endfor %}
-            </div>
-        </div>
-    </body>
-    </html>
-    """
+    app = Flask(__name__, static_folder=dist_dir)
+    bh = BookmarkHandler()
 
-    @app.route('/')
-    def index():
-        bookmarks = repo.list_all()
-        return render_template_string(HTML_TEMPLATE, bookmarks=bookmarks)
+    # API Routes
+    @app.route('/api/bookmarks', methods=['GET'])
+    def get_bookmarks():
+        bookmarks = bh.list_bookmarks()
+        data = []
+        for b in bookmarks:
+            data.append({
+                "id": str(b.id),
+                "title": b.name,
+                "url": b.url,
+                "description": "", 
+                "tags": b.tags,
+                "createdAt": b.created_at.isoformat(),
+                "updatedAt": b.created_at.isoformat(),
+            })
+        return jsonify(data)
+
+    @app.route('/api/bookmarks', methods=['POST'])
+    def add_bookmark():
+        req_data = request.get_json()
+        b = bh.add_bookmark(
+            url=req_data['url'],
+            name=req_data.get('title', req_data.get('name', 'unnamed')),
+            tags=req_data.get('tags', [])
+        )
+        return jsonify({
+            "id": str(b.id),
+            "title": b.name,
+            "url": b.url,
+            "tags": b.tags,
+            "createdAt": b.created_at.isoformat(),
+        }), 201
+
+    @app.route('/api/bookmarks/<int:bookmark_id>', methods=['PUT'])
+    def update_bookmark_api(bookmark_id):
+        req_data = request.get_json()
+        ok = bh.update_bookmark(
+            bookmark_id,
+            url=req_data.get('url'),
+            name=req_data.get('title', req_data.get('name')),
+            tags=req_data.get('tags')
+        )
+        if not ok:
+            return jsonify({"error": "Not found"}), 404
+        return jsonify({"status": "success"})
+
+    @app.route('/api/bookmarks/<int:bookmark_id>', methods=['DELETE'])
+    def delete_bookmark_api(bookmark_id):
+        bh.delete_bookmarks(str(bookmark_id))
+        return jsonify({"status": "success"})
+
+    # Catch-all route for SPA
+    @app.route('/', defaults={'path': ''})
+    @app.route('/<path:path>')
+    def catch_all(path):
+        if path != "" and os.path.exists(os.path.join(app.static_folder, path)):
+            return send_from_directory(app.static_folder, path)
+        return send_from_directory(app.static_folder, 'index.html')
 
     return app
 
@@ -133,5 +80,6 @@ def create_app():
 def server(port):
     """Run a simple and performant web server which serves the site for managing bookmarks"""
     app = create_app()
+    # Disable flask logging to make it cleaner? No, let's keep it for now.
     click.echo(f"Starting revisit server on http://localhost:{port}")
-    app.run(port=port, host='0.0.0.0')
+    app.run(port=port, host='0.0.0.0', threaded=True)

@@ -1,7 +1,7 @@
 import click
-from revisit.db.sqlite.manager import DatabaseManager
-from revisit.db.sqlite.repository import BookmarkRepository
-from revisit.core.utils import parse_indices
+
+from revisit.handlers.bookmark_handler import BookmarkHandler
+
 
 @click.command(name="print")
 @click.argument('indices', required=False)
@@ -12,14 +12,8 @@ def print_cmd(indices):
     hyphenated range (e.g. 100-200) or both (e.g. 1-3 7 9).
     If no arguments, all records are shown.
     """
-    db_manager = DatabaseManager()
-    repo = BookmarkRepository(db_manager)
-    
-    if indices:
-        ids = list(parse_indices(indices))
-        bookmarks = repo.get_by_ids(ids)
-    else:
-        bookmarks = repo.list_all()
+    handler = BookmarkHandler()
+    bookmarks = handler.list_bookmarks(indices)
     
     if not bookmarks:
         click.echo("No bookmarks found.")

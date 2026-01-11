@@ -1,7 +1,7 @@
 import click
-from revisit.domain.bookmark import Bookmark
-from revisit.db.sqlite.manager import DatabaseManager
-from revisit.db.sqlite.repository import BookmarkRepository
+
+from revisit.handlers.bookmark_handler import BookmarkHandler
+
 
 @click.command()
 @click.option('--url', required=True, help='URL of the bookmark.')
@@ -9,13 +9,10 @@ from revisit.db.sqlite.repository import BookmarkRepository
 @click.option('--tags', help='Tags of the bookmark (comma-separated).')
 def add(url, name, tags):
     """Add a bookmark"""
-    db_manager = DatabaseManager()
-    repo = BookmarkRepository(db_manager)
-    
+    handler = BookmarkHandler()
     tag_list = [t.strip() for t in tags.split(",")] if tags else []
-    bookmark = Bookmark(url=url, name=name, tags=tag_list)
     
-    repo.add(bookmark)
+    handler.add_bookmark(url=url, name=name, tags=tag_list)
     click.echo(f"Successfully added bookmark: {name} ({url})")
 
 if __name__ == '__main__':
