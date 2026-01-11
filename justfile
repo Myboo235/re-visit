@@ -16,6 +16,11 @@ build:
 install:
 	@uv sync
 
+# Initial setup (sync dependencies + install pre-commit hooks)
+setup:
+	@uv sync
+	@uv run pre-commit install
+
 # Reset the database (caution!)
 db-reset:
 	rm -f bookmarks.db

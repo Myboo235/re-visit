@@ -8,9 +8,10 @@
    uv venv
    source .venv/bin/activate
    ```
-3. **Dependencies**: Install dependencies using `uv`:
+3. **Quick Setup**: Run the setup command to install dependencies and activate pre-commit hooks:
    ```bash
    uv sync
+   just setup
    ```
 
 ## Building the Project

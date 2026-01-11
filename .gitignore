@@ -6,3 +6,4 @@ dist/
 bookmarks.db
 bookmarks_test.html
 .DS_Store
+.ruff_cache
