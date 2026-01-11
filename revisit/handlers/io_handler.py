@@ -11,14 +11,14 @@ class IOHandler:
         bookmarks = self.bh.list_bookmarks()
         if not bookmarks:
             return 0
-            
+
         with open(output_file, "w", encoding="utf-8") as f:
             f.write("<!DOCTYPE NETSCAPE-Bookmark-file-1>\n")
             f.write('<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=UTF-8">\n')
             f.write("<TITLE>Bookmarks</TITLE>\n")
             f.write("<H1>Bookmarks</H1>\n")
             f.write("<DL><p>\n")
-            
+
             for b in bookmarks:
                 timestamp = int(b.created_at.timestamp())
                 tags = ",".join(b.tags)

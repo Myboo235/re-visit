@@ -16,7 +16,7 @@ class Bookmark:
         tags = data.get("tags", "")
         if isinstance(tags, str):
             tags = [t.strip() for t in tags.split(",") if t.strip()]
-        
+
         created_at = (
             datetime.fromisoformat(data["created_at"]) if data.get("created_at") else datetime.now()
         )
@@ -34,5 +34,5 @@ class Bookmark:
             "url": self.url,
             "name": self.name,
             "tags": ",".join(self.tags),
-            "created_at": self.created_at.isoformat()
+            "created_at": self.created_at.isoformat(),
         }

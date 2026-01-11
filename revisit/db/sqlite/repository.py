@@ -15,12 +15,15 @@ class BookmarkRepository:
         """
         with self.db_manager.get_connection() as conn:
             cursor = conn.cursor()
-            cursor.execute(query, (
-                bookmark.url,
-                bookmark.name,
-                ",".join(bookmark.tags),
-                bookmark.created_at.isoformat()
-            ))
+            cursor.execute(
+                query,
+                (
+                    bookmark.url,
+                    bookmark.name,
+                    ",".join(bookmark.tags),
+                    bookmark.created_at.isoformat(),
+                ),
+            )
             bookmark.id = cursor.lastrowid
             conn.commit()
         return bookmark
@@ -66,10 +69,5 @@ class BookmarkRepository:
         WHERE id = ?
         """
         with self.db_manager.get_connection() as conn:
-            conn.execute(query, (
-                bookmark.url,
-                bookmark.name,
-                ",".join(bookmark.tags),
-                bookmark.id
-            ))
+            conn.execute(query, (bookmark.url, bookmark.name, ",".join(bookmark.tags), bookmark.id))
             conn.commit()

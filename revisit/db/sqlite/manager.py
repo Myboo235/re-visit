@@ -12,7 +12,7 @@ class DatabaseManager:
         """Initialize the database and run migrations."""
         if not os.path.exists(self.db_path):
             Path(self.db_path).touch()
-        
+
         self.run_migrations()
 
     def get_connection(self):
@@ -23,8 +23,10 @@ class DatabaseManager:
     def run_migrations(self):
         migrations_dir = Path(__file__).parent / "migrations"
         if not migrations_dir.exists():
-            raise FileNotFoundError(f"Migrations directory not found at {migrations_dir}. "
-                                  "Ensure the package is installed correctly with all data files.")
+            raise FileNotFoundError(
+                f"Migrations directory not found at {migrations_dir}. "
+                "Ensure the package is installed correctly with all data files."
+            )
 
         with self.get_connection() as conn:
             # We could implement a migrations table to track applied migrations,

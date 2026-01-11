@@ -4,7 +4,7 @@ from revisit.handlers.bookmark_handler import BookmarkHandler
 
 
 @click.command(name="print")
-@click.argument('indices', required=False)
+@click.argument("indices", required=False)
 def print_cmd(indices):
     """
     Show the saved bookmarks by its database index.
@@ -14,11 +14,11 @@ def print_cmd(indices):
     """
     handler = BookmarkHandler()
     bookmarks = handler.list_bookmarks(indices)
-    
+
     if not bookmarks:
         click.echo("No bookmarks found.")
         return
-    
+
     for b in bookmarks:
         tags_str = f" [{', '.join(b.tags)}]" if b.tags else ""
         click.echo(f"{b.id:3}: {b.name} - {b.url}{tags_str}")

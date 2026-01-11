@@ -12,7 +12,7 @@ class CheckHandler:
     def check_all(self, yield_results=False):
         bookmarks = self.bh.list_bookmarks()
         results = []
-        
+
         for b in bookmarks:
             status = self.check_link(b.url)
             result = (b, status)
@@ -20,7 +20,7 @@ class CheckHandler:
                 yield result
             else:
                 results.append(result)
-        
+
         if not yield_results:
             return results
 

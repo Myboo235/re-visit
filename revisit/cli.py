@@ -17,6 +17,7 @@ def revisit():
     """Revisit is a bookmark manager with custom webview"""
     pass
 
+
 revisit.add_command(add)
 revisit.add_command(version)
 revisit.add_command(print_cmd)
@@ -28,5 +29,5 @@ revisit.add_command(export)
 revisit.add_command(import_cmd)
 revisit.add_command(server)
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     revisit()

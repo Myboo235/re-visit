@@ -9,12 +9,12 @@ def check():
     """Check if links still exist on the internet"""
     bh = BookmarkHandler()
     ch = CheckHandler(bh)
-    
+
     bookmarks = bh.list_bookmarks()
     if not bookmarks:
         click.echo("No bookmarks to check.")
         return
-        
+
     click.echo(f"Checking {len(bookmarks)} bookmarks...")
     for b, (ok, status) in ch.check_all(yield_results=True):
         if ok:
