@@ -21,26 +21,56 @@ import { BookmarkList } from '@/components/BookmarkList';
 import { BookmarkForm } from '@/components/BookmarkForm';
 import { SplitView } from '@/components/SplitView';
 import { Sidebar } from '@/components/Sidebar';
-import { Plus, Bookmark, LogOut, User, Search } from 'lucide-react';
+import { Plus, Bookmark, LogOut, User, Search, Upload, Loader2 } from 'lucide-react';
 import type { Bookmark as BookmarkType } from '@/types';
-import { toast } from 'sonner';
 import { Input } from '@/components/ui/input';
 import {
     ResizableHandle,
     ResizablePanel,
     ResizablePanelGroup,
 } from "@/components/ui/resizable";
+import { useImportBookmarksApiBookmarksImportPost } from '@/api/generated/bookmark/bookmark';
+import { useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
 
 export function Bookmarks() {
     const { user, logout } = useAuth();
     const { bookmarks, addBookmark, updateBookmark, deleteBookmark, searchQuery, setSearchQuery } = useBookmarks();
     const navigate = useNavigate();
+    const queryClient = useQueryClient();
+    const importMutation = useImportBookmarksApiBookmarksImportPost();
 
     const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
     const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
     const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
     const [selectedBookmark, setSelectedBookmark] = useState<BookmarkType | null>(null);
     const [previewBookmark, setPreviewBookmark] = useState<BookmarkType | null>(null);
+    const [isImporting, setIsImporting] = useState(false);
+
+    const handleImport = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        setIsImporting(true);
+        try {
+            const result = await importMutation.mutateAsync({
+                data: { file: file as any }
+            });
+
+            if (result.status === 200) {
+                toast.success(result.data.message);
+                queryClient.invalidateQueries({ queryKey: ['/api/bookmarks'] });
+            } else {
+                toast.error('Import failed');
+            }
+        } catch (error) {
+            console.error('Import error:', error);
+            toast.error('An error occurred during import');
+        } finally {
+            setIsImporting(false);
+            e.target.value = '';
+        }
+    };
 
     const handleLogout = () => {
         logout();
@@ -50,7 +80,6 @@ export function Bookmarks() {
     const handleAddBookmark = (data: Omit<BookmarkType, 'id' | 'createdAt' | 'updatedAt'>) => {
         addBookmark(data);
         setIsAddDialogOpen(false);
-        toast.success('Bookmark added successfully');
     };
 
     const handleEditBookmark = (data: Omit<BookmarkType, 'id' | 'createdAt' | 'updatedAt'>) => {
@@ -58,7 +87,6 @@ export function Bookmarks() {
             updateBookmark(selectedBookmark.id, data);
             setIsEditDialogOpen(false);
             setSelectedBookmark(null);
-            toast.success('Bookmark updated successfully');
         }
     };
 
@@ -70,7 +98,6 @@ export function Bookmarks() {
                 setPreviewBookmark(null);
             }
             setSelectedBookmark(null);
-            toast.success('Bookmark deleted successfully');
         }
     };
 
@@ -105,6 +132,31 @@ export function Bookmarks() {
                 </div>
 
                 <div className="flex items-center justify-end gap-2 w-1/4">
+                    <input
+                        type="file"
+                        id="header-import-file"
+                        className="hidden"
+                        accept=".html"
+                        onChange={handleImport}
+                        disabled={isImporting}
+                    />
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        className="h-9"
+                        disabled={isImporting}
+                        asChild
+                    >
+                        <label htmlFor="header-import-file" className="cursor-pointer flex items-center">
+                            {isImporting ? (
+                                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                            ) : (
+                                <Upload className="h-4 w-4 mr-2" />
+                            )}
+                            Import
+                        </label>
+                    </Button>
+
                     <Button onClick={() => setIsAddDialogOpen(true)} size="sm" className="h-9">
                         <Plus className="h-4 w-4 mr-2" />
                         Add
@@ -155,6 +207,9 @@ export function Bookmarks() {
                                     }
                                 }}
                                 onPreview={handlePreview}
+                                onImport={() => document.getElementById('header-import-file')?.click()}
+                                onAdd={() => setIsAddDialogOpen(true)}
+                                isImporting={isImporting}
                                 selectedBookmarkId={previewBookmark?.id}
                             />
                         </SplitView>

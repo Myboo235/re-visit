@@ -1,24 +1,38 @@
+import { useState, useMemo } from 'react';
 import { useBookmarks } from '@/contexts/BookmarkContext';
 import {
     Inbox,
-    Folder,
-    Hash,
     Settings,
-    Plus
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { SettingsDialog } from './SettingsDialog';
+import { FolderTagItem } from './FolderTagManager';
 
 export function Sidebar() {
-    const { bookmarks, filter, setFilter, folders } = useBookmarks();
+    const { bookmarks, filter, setFilter, folders, stats } = useBookmarks();
+    const [settingsOpen, setSettingsOpen] = useState(false);
 
-    const allTags = Array.from(new Set(bookmarks.flatMap(b => b.tags))).sort();
+    const allTags = useMemo(() => {
+        if (stats?.tags) {
+            return Object.keys(stats.tags).sort();
+        }
+        return Array.from(new Set(bookmarks.flatMap(b => b.tags))).sort();
+    }, [stats, bookmarks]);
 
     const getCount = (type: string, value?: string) => {
-        if (type === 'all') return bookmarks.length;
-        if (type === 'unsorted') return bookmarks.filter(b => !b.folder).length;
-        if (type === 'folder') return bookmarks.filter(b => b.folder === value).length;
-        if (type === 'tag') return bookmarks.filter(b => b.tags.includes(value!)).length;
+        if (!stats) {
+            if (type === 'all') return bookmarks.length;
+            if (type === 'unsorted') return bookmarks.filter(b => !b.folder || b.folder === 'Unsorted').length;
+            if (type === 'folder') return bookmarks.filter(b => b.folder === value).length;
+            if (type === 'tag') return bookmarks.filter(b => b.tags.includes(value!)).length;
+            return 0;
+        }
+
+        if (type === 'all') return stats.total;
+        if (type === 'unsorted') return stats.folders['Unsorted'] || 0;
+        if (type === 'folder') return stats.folders[value!] || 0;
+        if (type === 'tag') return stats.tags[value!] || 0;
         return 0;
     };
 
@@ -29,7 +43,7 @@ export function Sidebar() {
         active,
         onClick
     }: {
-        icon: any,
+        icon: React.ComponentType<{ className?: string }>,
         label: string,
         count: number,
         active: boolean,
@@ -53,7 +67,12 @@ export function Sidebar() {
     return (
         <div className="flex flex-col h-full bg-background border-r">
             <div className="p-4 flex items-center justify-end">
-                <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-foreground">
+                <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8 text-muted-foreground hover:text-foreground"
+                    onClick={() => setSettingsOpen(true)}
+                >
                     <Settings className="h-4 w-4" />
                 </Button>
             </div>
@@ -76,23 +95,19 @@ export function Sidebar() {
                             active={filter.type === 'unsorted'}
                             onClick={() => setFilter({ type: 'unsorted' })}
                         />
-                        {/* You could add Images/Links filtering logic here if needed */}
                     </div>
 
                     {/* Collections / Folders */}
                     <div className="space-y-2">
                         <div className="flex items-center justify-between px-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider mt-6">
                             <span>{folders.length} Collections</span>
-                            <Button variant="ghost" size="icon" className="h-4 w-4">
-                                <Plus className="h-3 w-3" />
-                            </Button>
                         </div>
                         <div className="space-y-1">
-                            {folders.map(folder => (
-                                <NavItem
+                            {folders.filter(f => f !== 'Unsorted').map(folder => (
+                                <FolderTagItem
                                     key={folder}
-                                    icon={Folder}
-                                    label={folder}
+                                    type="folder"
+                                    name={folder}
                                     count={getCount('folder', folder)}
                                     active={filter.type === 'folder' && filter.value === folder}
                                     onClick={() => setFilter({ type: 'folder', value: folder })}
@@ -105,16 +120,13 @@ export function Sidebar() {
                     <div className="space-y-2">
                         <div className="flex items-center justify-between px-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider mt-6">
                             <span>{allTags.length} Tags</span>
-                            <Button variant="ghost" size="icon" className="h-4 w-4">
-                                <Plus className="h-3 w-3" />
-                            </Button>
                         </div>
                         <div className="space-y-1">
                             {allTags.map(tag => (
-                                <NavItem
+                                <FolderTagItem
                                     key={tag}
-                                    icon={Hash}
-                                    label={tag}
+                                    type="tag"
+                                    name={tag}
                                     count={getCount('tag', tag)}
                                     active={filter.type === 'tag' && filter.value === tag}
                                     onClick={() => setFilter({ type: 'tag', value: tag })}
@@ -124,6 +136,8 @@ export function Sidebar() {
                     </div>
                 </div>
             </ScrollArea>
+
+            <SettingsDialog open={settingsOpen} onOpenChange={setSettingsOpen} />
         </div>
     );
 }

@@ -1,6 +1,6 @@
 import click
 
-from revisit.handlers.bookmark_handler import BookmarkHandler
+from revisit.handlers.bookmark_handler import BookmarkHandler, BookmarkParams
 
 
 @click.command()
@@ -12,7 +12,7 @@ def add(url, name, tags):
     handler = BookmarkHandler()
     tag_list = [t.strip() for t in tags.split(",")] if tags else []
 
-    handler.add_bookmark(url=url, name=name, tags=tag_list)
+    handler.add_bookmark(url=url, name=name, params=BookmarkParams(tags=tag_list))
     click.echo(f"Successfully added bookmark: {name} ({url})")
 
 

@@ -11,4 +11,14 @@ export default defineConfig({
       "@": path.resolve(__dirname, "./src"),
     },
   },
+  build: {
+    outDir: '../revisit/web_dist',
+    emptyOutDir: true,
+  },
+  server: {
+    proxy: {
+      '/api': 'http://localhost:8080',
+      '/openapi': 'http://localhost:8080',
+    },
+  },
 })

@@ -1,9 +1,13 @@
 import { useState } from 'react';
+import type { MetadataOut } from '@/api/generated/model';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { isValidUrl, getFaviconUrl, getPlaceholderThumbnail } from '@/lib/utils';
 import type { Bookmark } from '@/types';
+import { useGetMetadataApiMetadataPost } from '@/api/generated/utility/utility';
+import { Loader2, Sparkles } from 'lucide-react';
+import { useBookmarks } from '@/contexts/BookmarkContext';
 
 interface BookmarkFormProps {
     bookmark?: Bookmark;
@@ -12,11 +16,41 @@ interface BookmarkFormProps {
 }
 
 export function BookmarkForm({ bookmark, onSubmit, onCancel }: BookmarkFormProps) {
+    const { folders } = useBookmarks();
     const [title, setTitle] = useState(bookmark?.title || '');
     const [url, setUrl] = useState(bookmark?.url || '');
     const [description, setDescription] = useState(bookmark?.description || '');
-    const [tags, setTags] = useState(bookmark?.tags.join(', ') || '');
+    const [tags, setTags] = useState(bookmark?.tags?.join(', ') || '');
+    const [folder, setFolder] = useState(bookmark?.folder || '');
     const [error, setError] = useState('');
+    const [favicon, setFavicon] = useState(bookmark?.favicon || '');
+    const [thumbnail, setThumbnail] = useState(bookmark?.thumbnail || '');
+    const [showsPreview, setShowsPreview] = useState(bookmark?.showsPreview ?? true);
+
+    const metadataMutation = useGetMetadataApiMetadataPost();
+
+    const fetchMetadata = async (targetUrl: string, forceOverwrite = false) => {
+        if (!isValidUrl(targetUrl)) return;
+
+        metadataMutation.mutate({ data: { url: targetUrl } }, {
+            onSuccess: (resp) => {
+                if (resp.status === 200) {
+                    const data = resp.data as MetadataOut;
+                    if (forceOverwrite || !title || title === 'unnamed' || title === '') setTitle(data.title);
+                    if (forceOverwrite || !description) setDescription(data.description);
+                    if (data.favicon) setFavicon(data.favicon);
+                    if (data.thumbnail) setThumbnail(data.thumbnail);
+                    setShowsPreview(!data.is_iframe_blocked);
+                }
+            }
+        });
+    };
+
+    const handleUrlBlur = () => {
+        if (url && (!title || title === 'unnamed' || title === '') && isValidUrl(url)) {
+            fetchMetadata(url);
+        }
+    };
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
@@ -32,8 +66,10 @@ export function BookmarkForm({ bookmark, onSubmit, onCancel }: BookmarkFormProps
             url: url.trim(),
             description: description.trim(),
             tags: tags.split(',').map(tag => tag.trim()).filter(Boolean),
-            favicon: getFaviconUrl(url),
-            thumbnail: getPlaceholderThumbnail(url),
+            folder: folder.trim() || undefined,
+            favicon: favicon || getFaviconUrl(url),
+            thumbnail: thumbnail || getPlaceholderThumbnail(url),
+            showsPreview: showsPreview,
         };
 
         onSubmit(formData);
@@ -41,6 +77,36 @@ export function BookmarkForm({ bookmark, onSubmit, onCancel }: BookmarkFormProps
 
     return (
         <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="space-y-2">
+                <Label htmlFor="url">URL *</Label>
+                <div className="flex gap-2">
+                    <Input
+                        id="url"
+                        type="url"
+                        placeholder="https://example.com"
+                        value={url}
+                        onChange={(e) => setUrl(e.target.value)}
+                        onBlur={handleUrlBlur}
+                        required
+                        className="flex-1"
+                    />
+                    <Button
+                        type="button"
+                        variant="outline"
+                        size="icon"
+                        onClick={() => fetchMetadata(url, true)}
+                        disabled={metadataMutation.isPending || !isValidUrl(url)}
+                        title="Fetch metadata"
+                    >
+                        {metadataMutation.isPending ? (
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                            <Sparkles className="h-4 w-4" />
+                        )}
+                    </Button>
+                </div>
+            </div>
+
             <div className="space-y-2">
                 <Label htmlFor="title">Title *</Label>
                 <Input
@@ -54,18 +120,6 @@ export function BookmarkForm({ bookmark, onSubmit, onCancel }: BookmarkFormProps
             </div>
 
             <div className="space-y-2">
-                <Label htmlFor="url">URL *</Label>
-                <Input
-                    id="url"
-                    type="url"
-                    placeholder="https://example.com"
-                    value={url}
-                    onChange={(e) => setUrl(e.target.value)}
-                    required
-                />
-            </div>
-
-            <div className="space-y-2">
                 <Label htmlFor="description">Description</Label>
                 <Input
                     id="description"
@@ -74,6 +128,23 @@ export function BookmarkForm({ bookmark, onSubmit, onCancel }: BookmarkFormProps
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
                 />
+            </div>
+
+            <div className="space-y-2">
+                <Label htmlFor="folder">Folder</Label>
+                <Input
+                    id="folder"
+                    type="text"
+                    placeholder="Work, Personal, Inspiration..."
+                    value={folder}
+                    onChange={(e) => setFolder(e.target.value)}
+                    list="folder-list"
+                />
+                <datalist id="folder-list">
+                    {folders.map(f => (
+                        <option key={f} value={f} />
+                    ))}
+                </datalist>
             </div>
 
             <div className="space-y-2">

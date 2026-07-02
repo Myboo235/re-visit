@@ -7,7 +7,7 @@ import {
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { ExternalLink, MoreVertical, Pencil, Trash2, Eye, Image as ImageIcon } from 'lucide-react';
+import { ExternalLink, MoreVertical, Pencil, Trash2, Eye, Bookmark as BookmarkIcon } from 'lucide-react';
 import type { Bookmark } from '@/types';
 
 interface BookmarkCardProps {
@@ -24,10 +24,43 @@ export function BookmarkCard({ bookmark, onEdit, onDelete, onPreview, isSelected
 
     return (
         <Card
-            className={`group hover:border-primary/50 transition-all duration-200 cursor-pointer overflow-hidden flex ${isGrid ? 'flex-col h-[18vh] w-[18vh] py-0 shrink-0' : 'flex-row h-24 w-full'
+            className={`group hover:border-primary/50 transition-all duration-200 cursor-pointer overflow-hidden flex relative ${isGrid ? 'flex-col h-[18vh] w-[18vh] py-0 shrink-0' : 'flex-row h-24 w-full'
                 } ${isSelected ? 'border-primary ring-2 ring-primary/20' : ''}`}
             onClick={() => onPreview(bookmark)}
         >
+            {/* 3-dots menu - absolute positioned for grid view */}
+            <DropdownMenu>
+                <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
+                    <Button
+                        variant="ghost"
+                        size="icon"
+                        className={`opacity-0 group-hover:opacity-100 transition-opacity z-10 ${isGrid
+                                ? 'absolute top-1 right-1 h-6 w-6 bg-background/70 backdrop-blur-sm shadow-sm rounded-md'
+                                : 'absolute top-2 right-2 h-7 w-7'
+                            }`}
+                    >
+                        <MoreVertical className={isGrid ? "h-3.5 w-3.5" : "h-4 w-4"} />
+                    </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                    <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onPreview(bookmark); }}>
+                        <Eye className="mr-2 h-4 w-4" /> Preview
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={(e) => { e.stopPropagation(); window.open(bookmark.url, '_blank'); }}>
+                        <ExternalLink className="mr-2 h-4 w-4" /> Open
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onEdit(bookmark); }}>
+                        <Pencil className="mr-2 h-4 w-4" /> Edit
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                        onClick={(e) => { e.stopPropagation(); onDelete(bookmark.id); }}
+                        className="text-destructive"
+                    >
+                        <Trash2 className="mr-2 h-4 w-4" /> Delete
+                    </DropdownMenuItem>
+                </DropdownMenuContent>
+            </DropdownMenu>
+
             {/* Thumbnail */}
             {bookmark.thumbnail && (
                 <div className={`relative bg-muted overflow-hidden shrink-0 ${isGrid ? 'w-full h-3/5' : 'w-32 h-full border-r'
@@ -46,9 +79,10 @@ export function BookmarkCard({ bookmark, onEdit, onDelete, onPreview, isSelected
 
             {/* No thumbnail fallback */}
             {!bookmark.thumbnail && (
-                <div className={`relative bg-gradient-to-br from-primary/10 to-primary/5 flex items-center justify-center shrink-0 ${isGrid ? 'w-full h-3/5' : 'w-32 h-full border-r'
+                <div className={`relative bg-gradient-to-br from-primary/20 via-primary/10 to-transparent flex items-center justify-center shrink-0 ${isGrid ? 'w-full h-3/5' : 'w-32 h-full border-r'
                     }`}>
-                    <ImageIcon className="h-8 w-8 text-muted-foreground/30" />
+                    <div className="absolute inset-0 opacity-10 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-primary to-transparent" />
+                    <BookmarkIcon className="h-10 w-10 text-primary/40 drop-shadow-sm" />
                 </div>
             )}
 
@@ -66,37 +100,11 @@ export function BookmarkCard({ bookmark, onEdit, onDelete, onPreview, isSelected
                                     }}
                                 />
                             )}
-                            <CardTitle className={`font-semibold truncate ${isGrid ? 'text-[11px]' : 'text-sm'}`}>
+                            <CardTitle className={`font-semibold ${isGrid ? 'text-[11px] line-clamp-2' : 'text-sm truncate'}`}>
                                 {bookmark.title}
                             </CardTitle>
                         </div>
 
-                        {!isGrid && (
-                            <DropdownMenu>
-                                <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
-                                    <Button variant="ghost" size="icon" className="h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity">
-                                        <MoreVertical className="h-4 w-4" />
-                                    </Button>
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent align="end">
-                                    <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onPreview(bookmark); }}>
-                                        <Eye className="mr-2 h-4 w-4" /> Preview
-                                    </DropdownMenuItem>
-                                    <DropdownMenuItem onClick={(e) => { e.stopPropagation(); window.open(bookmark.url, '_blank'); }}>
-                                        <ExternalLink className="mr-2 h-4 w-4" /> Open
-                                    </DropdownMenuItem>
-                                    <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onEdit(bookmark); }}>
-                                        <Pencil className="mr-2 h-4 w-4" /> Edit
-                                    </DropdownMenuItem>
-                                    <DropdownMenuItem
-                                        onClick={(e) => { e.stopPropagation(); onDelete(bookmark.id); }}
-                                        className="text-destructive"
-                                    >
-                                        <Trash2 className="mr-2 h-4 w-4" /> Delete
-                                    </DropdownMenuItem>
-                                </DropdownMenuContent>
-                            </DropdownMenu>
-                        )}
                     </div>
                     {!isGrid && (
                         <CardDescription className="text-xs truncate text-muted-foreground/70 mt-0.5">

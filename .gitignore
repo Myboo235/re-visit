@@ -4,6 +4,8 @@ __pycache__/
 dist/
 *.egg-info/
 bookmarks.db
+revisit/web_dist/
 bookmarks_test.html
 .DS_Store
 .ruff_cache
+bookmarks.db

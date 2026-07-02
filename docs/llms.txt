@@ -1,0 +1,28 @@
+# Revisit Bookmark Manager
+
+A modern self-hosted bookmark manager with a CLI and a premium web interface.
+
+## Project Structure
+- `revisit/`: Backend logic (Python/Flask)
+  - `commands/`: CLI commands and server entry point
+  - `core/`: Core logic including metadata extraction
+  - `db/`: SQLite database management and migrations
+  - `domain/`: Data models and Pydantic schemas
+  - `handlers/`: Business logic handlers
+- `web/`: Frontend (React/Vite/Tailwind)
+  - `src/api/`: Generated API client (Orval)
+  - `src/components/`: UI components using Headless UI / custom styles
+  - `src/contexts/`: State management (Auth, Bookmarks)
+- `docs/`: Documentation
+
+## Key Features
+- **Metadata Fetching**: Automatically extracts title, description, favicon, and thumbnail from URLs.
+- **Iframe Reliability**: Detects security headers (CSP/XFO) to determine embeddability.
+- **Modern UI**: Dark-mode first, glassmorphism design with split-view preview.
+- **Auth**: Basic built-in authentication.
+- **CLI**: Powerful command line tools for importing/exporting and management.
+
+## Tech Stack
+- **Backend**: Flask-OpenAPI3, SQLite, Pydantic, Beautiful Soup 4.
+- **Frontend**: React, Vite, TanStack Query, Lucide Icons, Orval.
+- **Package Manager**: uv (Python), pnpm (JS).

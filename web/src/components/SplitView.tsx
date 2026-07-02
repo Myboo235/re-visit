@@ -26,22 +26,28 @@ export function SplitView({ children, previewUrl, previewBookmark }: SplitViewPr
 
     useEffect(() => {
         if (previewUrl) {
-            // Check if URL is likely to be blocked BEFORE trying to load
+            // Check if backend already determined this URL is blocked
+            if (previewBookmark && previewBookmark.showsPreview === false) {
+                setIframeError(true);
+                setIsLoading(false);
+                setShowCSPWarning(false);
+                return;
+            }
+
+            // Fallback to frontend check if domain is likely to be blocked 
             const isBlocked = isLikelyCSPBlocked(previewUrl);
 
             if (isBlocked) {
-                // Skip iframe entirely, show custom error page
                 setIframeError(true);
                 setIsLoading(false);
                 setShowCSPWarning(false);
             } else {
-                // Try to load the iframe
                 setIsLoading(true);
                 setIframeError(false);
                 setShowCSPWarning(false);
             }
         }
-    }, [previewUrl]);
+    }, [previewUrl, previewBookmark]);
 
     const handleTogglePreview = () => {
         setShowPreview(!showPreview);

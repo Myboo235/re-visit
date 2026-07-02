@@ -27,15 +27,27 @@ The artifacts will be generated in the `dist/` directory.
 The project uses SQLite for storage. 
 
 ### Running Migrations
-Migrations are handled automatically by the `DatabaseManager` when you run any command.
-- Migrations are stored in `revisit/db/sqlite/migrations/`.
-- They are applied in alphabetical order.
+Migrations are handled automatically by the `DatabaseManager` when the application starts.
+- Applied migrations are tracked in the `schema_migrations` table to prevent re-runs.
+- Migrations are stored in `revisit/db/sqlite/migrations/` and applied in order.
 
 ### Resetting the Database
-To reset your database (deleting all bookmarks):
+To reset your database (deleting all bookmarks and users):
 ```bash
-just db-reset
+rm bookmarks.db
 ```
+
+## Web Interface
+
+The web interface provides a rich, modern dashboard for managing your bookmarks.
+
+- **URL**: http://localhost:8080 (default)
+- **Default Credentials**: `admin` / `admin`
+
+### Key Web Features
+- **Auto-Metadata**: URLs are automatically scraped for title, description, and images.
+- **Security Pre-check**: Detects sites that block iframe previews (like GitHub or Google) and shows a custom fallback.
+- **Split-View**: Preview bookmarks directly in the sidebar without leaving the app.
 
 ## CLI Usage
 

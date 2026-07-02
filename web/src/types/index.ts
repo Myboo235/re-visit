@@ -7,6 +7,7 @@ export interface Bookmark {
     folder?: string;
     favicon?: string;
     thumbnail?: string;
+    showsPreview?: boolean;
     createdAt: string;
     updatedAt: string;
 }
@@ -17,8 +18,8 @@ export interface User {
 
 export interface AuthContextType {
     user: User | null;
-    login: (username: string, password: string) => boolean;
-    logout: () => void;
+    login: (username: string, password: string) => Promise<boolean>;
+    logout: () => Promise<void>;
     isAuthenticated: boolean;
 }
 

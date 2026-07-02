@@ -55,19 +55,20 @@ export function getPlaceholderThumbnail(url: string): string {
   try {
     const urlObj = new URL(url);
     const domain = urlObj.hostname.replace('www.', '');
-    // Generate a simple gradient placeholder based on domain
-    const hash = domain.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
-    const hue = hash % 360;
+    // Generate a consistent dark-themed placeholder
     return `data:image/svg+xml,${encodeURIComponent(`
       <svg width="800" height="600" xmlns="http://www.w3.org/2000/svg">
         <defs>
           <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" style="stop-color:hsl(${hue}, 70%, 50%);stop-opacity:1" />
-            <stop offset="100%" style="stop-color:hsl(${(hue + 60) % 360}, 70%, 40%);stop-opacity:1" />
+            <stop offset="0%" style="stop-color:#1e1e2e;stop-opacity:1" />
+            <stop offset="100%" style="stop-color:#11111b;stop-opacity:1" />
           </linearGradient>
         </defs>
         <rect width="800" height="600" fill="url(#grad)"/>
-        <text x="50%" y="50%" font-family="Arial, sans-serif" font-size="48" fill="white" text-anchor="middle" dominant-baseline="middle">${domain}</text>
+        <g transform="translate(400, 300) scale(4)" opacity="0.1">
+          <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" fill="white" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </g>
+        <text x="50%" y="55%" font-family="system-ui, -apple-system, sans-serif" font-size="32" font-weight="600" fill="#cdd6f4" text-anchor="middle" letter-spacing="0.05em">${domain}</text>
       </svg>
     `)}`;
   } catch {

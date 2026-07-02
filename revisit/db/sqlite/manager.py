@@ -29,10 +29,23 @@ class DatabaseManager:
             )
 
         with self.get_connection() as conn:
-            # We could implement a migrations table to track applied migrations,
-            # but for this simple version, we'll just run them if table doesn't exist.
-            # The SQL itself has IF NOT EXISTS.
+            # Create migrations tracking table
+            conn.execute(
+                "CREATE TABLE IF NOT EXISTS schema_migrations (migration_name TEXT PRIMARY KEY)"
+            )
+
+            # Get already applied migrations
+            cursor = conn.execute("SELECT migration_name FROM schema_migrations")
+            applied_migrations = {row["migration_name"] for row in cursor.fetchall()}
+
+            # Run new migrations in order
             for migration_file in sorted(migrations_dir.glob("*.sql")):
-                with open(migration_file, "r") as f:
-                    conn.executescript(f.read())
+                name = migration_file.name
+                if name not in applied_migrations:
+                    print(f"Applying migration: {name}")
+                    with open(migration_file, "r") as f:
+                        conn.executescript(f.read())
+                    conn.execute(
+                        "INSERT INTO schema_migrations (migration_name) VALUES (?)", (name,)
+                    )
             conn.commit()
